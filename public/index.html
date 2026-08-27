@@ -1,0 +1,525 @@
+﻿<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My Fashion Store</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+  font-family:Arial,sans-serif;
+}
+
+body{
+  background:#f7f7f7;
+  color:#222;
+}
+
+header{
+  background:#111;
+  color:#fff;
+  padding:20px;
+  text-align:center;
+}
+
+.container{
+  max-width:700px;
+  margin:40px auto;
+  padding:20px;
+}
+
+.product{
+  background:#fff;
+  padding:25px;
+  border-radius:15px;
+  box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
+
+.product h2{
+  margin-bottom:10px;
+}
+
+.price{
+  font-size:22px;
+  font-weight:bold;
+  margin-bottom:20px;
+}
+
+label{
+  display:block;
+  margin-top:15px;
+  margin-bottom:6px;
+  font-weight:bold;
+}
+
+input,select{
+  width:100%;
+  padding:12px;
+  border:1px solid #ddd;
+  border-radius:8px;
+  font-size:16px;
+}
+
+button{
+  width:100%;
+  margin-top:25px;
+  padding:15px;
+  border:0;
+  border-radius:8px;
+  background:#111;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+}
+
+button:disabled{
+  background:#999;
+  cursor:not-allowed;
+}
+
+#stockInfo{
+  margin-top:10px;
+  font-weight:bold;
+}
+
+#result{
+  margin-top:20px;
+  padding:15px;
+  border-radius:8px;
+  display:none;
+  text-align:center;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>MY FASHION STORE</h1>
+</header>
+
+<div class="container">
+
+  <div class="product">
+
+    <h2>T-Shirt</h2>
+
+    <p class="price">
+      199 DH
+    </p>
+
+    <form id="orderForm">
+
+      <label>
+        Nom complet
+      </label>
+
+      <input
+        id="name"
+        type="text"
+        placeholder="Votre nom"
+        required
+      >
+
+      <label>
+        TÃ©lÃ©phone
+      </label>
+
+      <input
+        id="phone"
+        type="tel"
+        placeholder="06XXXXXXXX"
+        required
+      >
+
+      <label>
+        Adresse
+      </label>
+
+      <input
+        id="address"
+        type="text"
+        placeholder="Votre adresse"
+        required
+      >
+
+      <label>
+        Taille
+      </label>
+
+      <select id="size" required>
+
+        <option value="">
+          Choisir une taille
+        </option>
+
+        <option>S</option>
+        <option>M</option>
+        <option>L</option>
+        <option>XL</option>
+
+      </select>
+
+      <label>
+        Couleur
+      </label>
+
+      <select id="color" required>
+
+        <option value="">
+          Choisir une couleur
+        </option>
+
+        <option>Noir</option>
+        <option>Blanc</option>
+        <option>Beige</option>
+        <option>Bleu</option>
+
+      </select>
+
+      <div id="stockInfo">
+        Choisissez une taille et une couleur.
+      </div>
+
+      <label>
+        QuantitÃ©
+      </label>
+
+      <input
+        id="quantity"
+        type="number"
+        value="1"
+        min="1"
+        required
+      >
+
+      <button
+        id="orderButton"
+        type="submit"
+        disabled
+      >
+        Commander
+      </button>
+
+    </form>
+
+    <div id="result"></div>
+
+  </div>
+
+</div>
+
+<script>
+
+const form =
+  document.getElementById("orderForm");
+
+const result =
+  document.getElementById("result");
+
+const size =
+  document.getElementById("size");
+
+const color =
+  document.getElementById("color");
+
+const quantity =
+  document.getElementById("quantity");
+
+const stockInfo =
+  document.getElementById("stockInfo");
+
+const orderButton =
+  document.getElementById("orderButton");
+
+
+async function checkStock(){
+
+  const selectedSize =
+    size.value;
+
+  const selectedColor =
+    color.value;
+
+  const requestedQuantity =
+    Number(quantity.value);
+
+
+  if(!selectedSize || !selectedColor){
+
+    stockInfo.textContent =
+      "Choisissez une taille et une couleur.";
+
+    stockInfo.style.color =
+      "#555";
+
+    orderButton.disabled =
+      true;
+
+    return;
+  }
+
+
+  if(!requestedQuantity || requestedQuantity < 1){
+
+    stockInfo.textContent =
+      "QuantitÃ© invalide.";
+
+    stockInfo.style.color =
+      "#c00";
+
+    orderButton.disabled =
+      true;
+
+    return;
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/stock?product=T-Shirt&size=" +
+        encodeURIComponent(selectedSize) +
+        "&color=" +
+        encodeURIComponent(selectedColor)
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(!response.ok || !data.success){
+
+      stockInfo.textContent =
+        "Impossible de vÃ©rifier le stock.";
+
+      stockInfo.style.color =
+        "#c00";
+
+      orderButton.disabled =
+        true;
+
+      return;
+    }
+
+
+    const availableQuantity =
+      Number(data.quantity || 0);
+
+
+    if(availableQuantity < requestedQuantity){
+
+      stockInfo.textContent =
+        "âŒ Rupture de stock";
+
+      stockInfo.style.color =
+        "#c00";
+
+      orderButton.disabled =
+        true;
+
+      return;
+    }
+
+
+    stockInfo.textContent =
+      "âœ“ Disponible";
+
+    stockInfo.style.color =
+      "green";
+
+    orderButton.disabled =
+      false;
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    stockInfo.textContent =
+      "Impossible de vÃ©rifier le stock.";
+
+    stockInfo.style.color =
+      "#c00";
+
+    orderButton.disabled =
+      true;
+  }
+}
+
+
+size.addEventListener(
+  "change",
+  checkStock
+);
+
+
+color.addEventListener(
+  "change",
+  checkStock
+);
+
+
+quantity.addEventListener(
+  "input",
+  checkStock
+);
+
+
+form.addEventListener(
+  "submit",
+  async function(event){
+
+    event.preventDefault();
+
+
+    const order = {
+
+      name:
+        document
+          .getElementById("name")
+          .value
+          .trim(),
+
+      phone:
+        document
+          .getElementById("phone")
+          .value
+          .trim(),
+
+      address:
+        document
+          .getElementById("address")
+          .value
+          .trim(),
+
+      product:
+        "T-Shirt",
+
+      size:
+        size.value,
+
+      color:
+        color.value,
+
+      quantity:
+        Number(quantity.value)
+
+    };
+
+
+    try{
+
+      const response =
+        await fetch(
+          "/orders",
+          {
+            method:"POST",
+
+            headers:{
+              "Content-Type":
+                "application/json"
+            },
+
+            body:
+              JSON.stringify(order)
+          }
+        );
+
+
+      const data =
+        await response.json();
+
+
+      result.style.display =
+        "block";
+
+
+      if(data.success){
+
+        result.style.background =
+          "#d4edda";
+
+        result.style.color =
+          "#155724";
+
+        result.innerHTML =
+          "âœ… Commande enregistrÃ©e avec succÃ¨s !<br>" +
+          "NumÃ©ro de commande : " +
+          (data.orderId || data.id || "");
+
+
+        form.reset();
+
+        quantity.value =
+          1;
+
+        orderButton.disabled =
+          true;
+
+        stockInfo.textContent =
+          "Choisissez une taille et une couleur.";
+
+        stockInfo.style.color =
+          "#555";
+
+      }
+      else{
+
+        result.style.background =
+          "#f8d7da";
+
+        result.style.color =
+          "#721c24";
+
+        result.textContent =
+          "âŒ " +
+          (
+            data.message ||
+            data.error ||
+            "Erreur lors de la commande."
+          );
+
+        checkStock();
+      }
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      result.style.display =
+        "block";
+
+      result.style.background =
+        "#f8d7da";
+
+      result.style.color =
+        "#721c24";
+
+      result.textContent =
+        "âŒ Impossible de contacter le serveur.";
+    }
+
+  }
+);
+
+
+checkStock();
+
+</script>
+
+</body>
+</html>
+'@
+
+Set-Content $path $html -Encoding UTF8
+
+Write-Host ""
+Write-Host "INDEX.HTML REPAIRED AVEC SUCCES" -ForegroundColor Green
+Write-Host "Backup: public\index.backup.html" -ForegroundColor Yellow

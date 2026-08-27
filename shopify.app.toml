@@ -1,0 +1,18 @@
+client_id = "82ce0912b67a5ef2b0e17ee29e0f0dfc"
+name = "SAERA AI"
+application_url = "http://localhost:3457"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2026-07"
+
+[access_scopes]
+scopes = ""
+optional_scopes = []
+use_legacy_install_flow = false
+
+[auth]
+redirect_urls = []

@@ -1,0 +1,5 @@
+node_modules/
+orders.db
+orders.backup.db
+orders.backup.core-start.db
+.env
