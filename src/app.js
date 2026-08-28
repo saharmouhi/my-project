@@ -32,6 +32,36 @@ const db = new sqlite3.Database(
    DATABASE
 ========================= */
 
+db.all("PRAGMA table_info(orders)", (err, columns) => {
+  if (err) {
+    console.error("ORDERS MIGRATION CHECK ERROR:", err.message);
+    return;
+  }
+
+  const hasCreatedAt = columns.some(col => col.name === "created_at");
+
+  if (!hasCreatedAt) {
+    db.run(
+      "ALTER TABLE orders ADD COLUMN created_at DATETIME",
+      (alterErr) => {
+        if (alterErr) {
+          console.error("ORDERS MIGRATION ERROR:", alterErr.message);
+        } else {
+          db.run(
+            "UPDATE orders SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL",
+            (updateErr) => {
+              if (updateErr) {
+                console.error("ORDERS MIGRATION UPDATE ERROR:", updateErr.message);
+              } else {
+                console.log("Migration OK: created_at added to orders");
+              }
+            }
+          );
+        }
+      }
+    );
+  }
+});
 db.serialize(() => {
 
   db.run(`
@@ -44,7 +74,8 @@ db.serialize(() => {
       size TEXT,
       color TEXT,
       quantity INTEGER,
-      status TEXT DEFAULT 'new'
+      status TEXT DEFAULT 'new',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
@@ -2076,6 +2107,8 @@ app.post("/api/shopify/webhook", (req, res) => {
     "Server running on http://localhost:" + PORT
   );
 });
+
+
 
 
 
