@@ -4,6 +4,26 @@ const path = require("path");
 const crypto = require("crypto");
 
 const app = express();
+/* =========================
+   SHOPIFY EMBED SECURITY
+========================= */
+app.use((req, res, next) => {
+  const shop = req.query.shop;
+
+  if (shop && /^[a-zA-Z0-9][a-zA-Z0-9.-]*\.myshopify\.com$/.test(shop)) {
+    res.setHeader(
+      "Content-Security-Policy",
+      `frame-ancestors https://${shop} https://admin.shopify.com;`
+    );
+  } else {
+    res.setHeader(
+      "Content-Security-Policy",
+      "frame-ancestors https://admin.shopify.com;"
+    );
+  }
+
+  next();
+});
 
 const PORT = process.env.PORT || 3000;
 
@@ -2107,6 +2127,7 @@ app.post("/api/shopify/webhook", (req, res) => {
     "Server running on http://localhost:" + PORT
   );
 });
+
 
 
 
